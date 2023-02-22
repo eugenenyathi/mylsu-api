@@ -1,0 +1,604 @@
+        if ($this->hostel['room_number'] >= 101 && $this->hostel['room_number'] <= 115) {
+            $side = 'M';
+            $floor = '1st';
+
+            if ($this->hostel === 'Suburb') $floorSide = 'Left';
+            else $floorSide = 'Right';
+        } elseif ($this->hostel['room_number'] >= 116 && $this->hostel['room_number'] <= 130) {
+            $side = 'M';
+            $floor = '1st';
+
+            if ($this->hostel === 'Suburb') $floorSide = 'Right';
+            else $floorSide = 'Left';
+        } elseif ($this->hostel['room_number'] >= 131 && $this->hostel['room_number'] <= 160) {
+            $side = 'F';
+            $floor = '1st';
+
+            if ($this->hostel['room_number'] <= 145) {
+                if ($this->hostel === 'Suburb') $floorSide = 'Left';
+                else $floorSide = 'Right';
+            } else {
+                if ($this->hostel === 'Suburb') $floorSide = 'Right';
+                else $floorSide = 'Left';
+            }
+        } elseif ($this->hostel['room_number'] >= 201 && $this->hostel['room_number'] <= 215) {
+            $side = 'M';
+            $floor = '2nd';
+
+            if ($this->hostel === 'Suburb')  $floorSide = 'Left';
+            else $floorSide = 'Right';
+        } elseif ($this->hostel['room_number'] >= 216 && $this->hostel['room_number'] <= 230) {
+            $side = 'M';
+            $floor = '2nd';
+
+            if ($this->hostel === 'Suburb') $floorSide = 'Right';
+            else $floorSide = 'Left';
+        } elseif ($this->hostel['room_number'] >= 231 && $this->hostel['room_number'] <= 260) {
+            $side = 'F';
+            $floor = '2nd';
+
+            if ($this->hostel['room_number'] <= 245) {
+                if ($this->hostel === 'Suburb') $floorSide = 'Left';
+                else $floorSide = 'Right';
+            } else {
+                if ($this->hostel === 'Suburb') $floorSide = 'Right';
+                else $floorSide = 'Left';
+            }
+        } elseif ($this->hostel['room_number'] >= 301 && $this->hostel['room_number'] <= 330) {
+            $side = 'M';
+            $floor = '3rd';
+
+            if ($this->hostel['room_number'] <= 315) {
+                if ($this->hostel === 'Suburb') $floorSide = 'Left';
+                else $floorSide = 'Right';
+            } else {
+                if ($this->hostel === 'Suburb') $floorSide = 'Right';
+                else $floorSide = 'Left';
+            }
+        } elseif ($this->hostel['room_number'] >= 331 && $this->hostel['room_number'] <= 360) {
+            $side = 'F';
+            $floor = '3rd';
+
+            if ($this->hostel['room_number'] <= 345) {
+                if ($this->hostel === 'Suburb') $floorSide = 'Left';
+                else $floorSide = 'Right';
+            } else {
+                if ($this->hostel === 'Suburb') $floorSide = 'Right';
+                else $floorSide = 'Left';
+            }
+        }
+
+
+
+                $lastFemaleRoom = SuburbRoom::select(['room_number', 'usable', 'occupied'])
+            ->where('room_number', 360)
+            ->first();
+
+        $lastMaleRoom = SuburbRoom::select(['room_number', 'usable', 'occupied'])
+            ->where('room_number', 330)
+            ->first();
+
+        /* 
+            If the last rooms of the suburb hostel check for 
+            a free room in Mbundani
+        */
+
+        if ($lastFemaleRoom->occupied === 'Yes' || $lastMaleRoom->occupied === 'Yes') {
+            $room = MbundaniRoom::select('room_number')
+                ->where('occupied', 'No')
+                ->whereBetween('room_number', [$start, $end])
+                ->orderBy('room_number', 'desc')
+                ->first();
+
+            $this->hostel = [
+                'hostel' => 'Mbundani',
+                'room_number' => $room->room_number
+            ];
+
+            return $room->room_number ? true : false;
+        } else {
+            $room = SuburbRoom::select('room_number')
+                ->where('occupied', 'No')
+                ->whereBetween('room_number', [$start, $end])
+                ->orderBy('room_number', 'desc')
+                ->first();
+
+            $this->hostel = [
+                'hostel' => 'Suburb',
+                'room_number' => $room->room_number
+            ];
+
+            return $room->room_number ? true : false;
+        }
+
+         //1
+                    $roomieWhoDeclined = RequestCandidate::select('selected_roomie')
+                        ->where('selection_confirmed', 'No')
+                        ->where('requester_id', $requester->student_id)
+                        ->first();
+
+
+                    // dd([
+                    //     'orphan_requester' => $orphanRequester->student_id,
+                    //     'roomie who decline' => $roomieWhoDeclined->selected_roomie
+                    // ]);
+
+
+
+
+                    //1.2 These roomies are for the current looping requester
+                    $roomiesWhoDeclined = RequestCandidate::select('selected_roomie')
+                        ->where('selection_confirmed', 'No')
+                        ->where('requester_id', $requester->student_id)
+                        ->get();
+
+                    //2 & 3
+                    foreach ($roomiesWhoDeclined as $index => $roomie) {
+
+                        if ($index === count($roomiesWhoDeclined) - 1) {
+                            RequestCandidate::where('requester_id', $requester->student_id)
+                                ->where('selected_roomie', $roomie->selected_roomie)
+                                ->update(['selected_roomie' => $roomieWhoConfirmed->selected_roomie]);
+                        } else {
+                            RequestCandidate::where('requester_id', $requester->student_id)
+                                ->where('selected_roomie', $roomie->selected_roomie)
+                                ->update(['selected_roomie' => $requesterWithOneConfirmation->student_id]);
+                        }
+                    }
+
+
+
+
+
+
+                // dd($requesterWithOneConfirmation);
+                // dd([
+                //     'requester' => $requester->student_id,
+                //     'requesterWithOneConfirmation' => $requesterWithOneConfirmation->student_id
+                // ]);
+
+
+
+                    // dd([
+                    //     'requester' => $requester->student_id,
+                    //     'requesterWithOneConfirmation' => $requesterWithOneConfirmation->student_id,
+                    //     'roomieWhoConfirmed' => $roomieWhoConfirmed->selected_roomie
+                    // ]);
+
+
+
+                    // dd([
+                    //     'requester' => $requester->student_id,
+                    //     'roomies' => $newlySelectedRoomies,
+                    //     'hostel' => $this->residence['hostel'],
+                    //     'room_number' => $this->residence['room_number'],
+                    // ]);
+
+
+                                        // dd([
+                    //     'requester' => $requester->student_id,
+                    //     'roomies' => $newlySelectedRoomies,
+                    //     'residence' => $this->residence
+                    // ]);
+
+
+
+                        private function deepSet($confirmations = 0)
+    {
+        $orphanRequester = $this->loopThroughRequesters($this->requesters, $confirmations);
+
+        if ($orphanRequester) {
+            return $orphanRequester;
+        } else {
+            //if we can't find a requester of the same level, go a level down and look
+            //for a requester with a matching condition
+            $indexOfCurrentLevel = array_search($this->currentLoopingLevel, $this->levels);
+
+            if ($indexOfCurrentLevel === count($this->levels) - 1) {
+                $lowerLevel = $this->levels[$indexOfCurrentLevel - 1];
+            } else
+                $lowerLevel = $this->levels[$indexOfCurrentLevel + 1];
+
+            $lowerLevelRequesters =
+                $this->genderFirstSameLevelRequesters($this->currentLoopingGender, $lowerLevel);
+
+            $orphanRequester = $this->loopThroughRequesters($lowerLevelRequesters, $confirmations);
+
+            return $orphanRequester;
+        }
+    }
+
+
+
+                        if ($this->checkRoom($hostel, 331, 360)) {
+                        return $this->residence = [
+                            'hostel' => $hostel,
+                            'room_number' => $this->getRoom($hostel, 331, 360)
+                        ];
+                    } elseif ($this->checkRoom($hostel, 231, 260)) {
+                        return $this->residence = [
+                            'hostel' => $hostel,
+                            'room_number' => $this->getRoom($hostel, 231, 260)
+                        ];
+                    } elseif ($this->checkRoom($hostel, 216, 230)) {
+                        return $this->residence = [
+                            'hostel' => $hostel,
+                            'room_number' => $t($hostel, 231, 260)
+                        ];
+                    } elseif ($this->checkRoom($hostel, 131, 160)) {
+                        return $this->residence = [
+                            'hostel' => $hostel,
+                            'room_number' => $this->getRoom($hostel, 131, 160)
+                        ];
+                    } elseif ($this->checkRoom($hostel, 101, 115)) {
+                        return $this->residence = [
+                            'hostel' => $hostel,
+                            'room_number' => $this->getRoom($hostel, 101, 115)
+                        ];
+                    }
+
+
+                                        if ($this->checkRoom($hostel, 301, 330)) {
+                        return $this->residence = [
+                            'hostel' => $hostel,
+                            'room_number' => $this->getRoom($hostel, 301, 330)
+                        ];
+                    } elseif ($this->checkRoom($hostel, 201, 215)) {
+                        return $this->residence = [
+                            'hostel' => $hostel,
+                            'room_number' => $this->getRoom($hostel, 201, 215)
+                        ];
+                    } elseif ($this->checkRoom($hostel, 116, 130)) {
+                        return $this->residence = [
+                            'hostel' => $hostel,
+                            'room_number' => $this->getRoom($hostel, 116, 130)
+                        ];
+                    }
+
+
+    private function checkRoom($hostel, $firstRoom, $lastRoom)
+    {
+
+        //check if within that range there is a room with less
+        $roomsWithLessStudents = Residence::select(DB::raw('room, count(room) as student_count'))
+            ->where('hostel', $hostel)
+            ->whereBetween('room', [$firstRoom, $lastRoom])
+            ->groupBy('room')
+            ->havingRaw('count(room) < 4')
+            ->get();
+
+        return $roomsWithLessStudents;
+    }
+
+
+                        // private function roomsWithoutStudents()
+    // {
+    //     $rooms = [];
+
+    //     foreach ($this->residence['rooms'] as $room) {
+    //         $exists = Residence::where('hostel', $this->residence['hostel'])->where('room', $room)->exists();
+
+    //         if (!$exists) {
+    //             $rooms[] = $room;
+    //         }
+    //     }
+
+    //     return $rooms;
+    // }
+
+    // private function roomsWithLessStudents()
+    // {
+    //     $rooms = [];
+
+    //     foreach ($this->residence['rooms'] as $room) {
+    //         $exists = Residence::where('hostel', $this->residence['hostel'])->where('room', $room)->exists();
+
+    //         if ($exists) {
+    //             if ($this->checkRoomStudentCount($this->residence['hostel'], $room)) {
+    //                 $rooms[] = $room;
+    //             }
+    //         }
+    //     }
+
+    //     return $rooms;
+    // }
+
+
+        if (count($crowdRequesters) === 1) {
+
+            $lowerLevel = 0;
+            $indexOfCurrentLevel = array_search($this->currentLoopingLevel, $this->levels);
+
+            if ($indexOfCurrentLevel === count($this->levels) - 1) {
+                $lowerLevel = $this->levels[$indexOfCurrentLevel - 1];
+            } else
+                $lowerLevel = $this->levels[$indexOfCurrentLevel + 1];
+
+
+            $lowerLevelRequesters =
+                $this->genderFirstSameLevelRequesters($this->currentLoopingGender, $lowerLevel);
+
+            $orphanRequester = $this->loopThroughRequesters($lowerLevelRequesters, $confirmations);
+
+            if ($orphanRequester)  $crowdRequesters[] = $orphanRequester->student_id;
+        }
+
+
+    private function store($gender, $level)
+    {
+        $data = [
+            'gender' => $gender,
+            'level' => $level,
+            'students' =>  $this->genderFirstSameLevelStudents($gender, $level)
+        ];
+
+        $students[] = $data;
+
+        // $this->results[] = [
+        //     'level' => $level,
+        //     'requests' => $request
+        //     // 'pool' => $students
+        // ];
+    }
+
+
+       $programmes = [
+            [
+                'id' => 'BC12',
+                'program' => 'Business Computing',
+                'faculty_id' => 'ENG'
+            ],
+            [
+                'id' => 'BC21',
+                'program' => 'Business Computing',
+                'faculty_id' => 'ENG'
+            ],
+            [
+                'id' => 'BC22',
+                'program' => 'Business Computing',
+                'faculty_id' => 'ENG'
+            ],
+            // [
+            //     'id' => 'BC31',
+            //     'program' => 'Business Computing',
+            //     'faculty_id' => 'ENG'
+            // ],
+            // [
+            //     'id' => 'BC32',
+            //     'program' => 'Business Computing',
+            //     'faculty_id' => 'ENG'
+            // ],
+            [
+                'id' => 'AS12',
+                'program' => 'Animal Science',
+                'faculty_id' => 'AGR'
+            ],
+            [
+                'id' => 'AS21',
+                'program' => 'Animal Science',
+                'faculty_id' => 'AGR'
+            ],
+            [
+                'id' => 'AS22',
+                'program' => 'Animal Science',
+                'faculty_id' => 'AGR'
+            ],
+            // [
+            //     'id' => 'AS31',
+            //     'program' => 'Animal Science',
+            //     'faculty_id' => 'AGR'
+            // ],
+            // [
+            //     'id' => 'AS32',
+            //     'program' => 'Animal Science',
+            //     'faculty_id' => 'AGR'
+            // ],
+            [
+                'id' => 'DS12',
+                'program' => 'Development Studies',
+                'faculty_id' => 'HUN'
+            ],
+            [
+                'id' => 'DS21',
+                'program' => 'Development Studies',
+                'faculty_id' => 'HUN'
+            ],
+            [
+                'id' => 'DS22',
+                'program' => 'Development Studies',
+                'faculty_id' => 'HUN'
+            ],
+            // [
+            //     'id' => 'DS31',
+            //     'program' => 'Development Studies',
+            //     'faculty_id' => 'HUN'
+            // ],
+            // [
+            //     'id' => 'DS32',
+            //     'program' => 'Development Studies',
+            //     'faculty_id' => 'HUN'
+            // ]
+        ];
+
+
+
+                switch ($this->part) {
+            case 1.2:
+                $programs = $this->levelProgramCodes(12);
+                $this->enrolled = 2022;
+                //Get a random program id
+                $this->programID = $this->randomProgramID($programs);
+                break;
+            case 2.1:
+                $programs = $this->levelProgramCodes(12);
+                $this->enrolled = 2021;
+                //Get a random program id
+                $this->programID = $this->randomProgramID($programs);
+                break;
+            case 2.2:
+                $programs = $this->levelProgramCodes(12);
+                $this->enrolled = 2021;
+                //Get a random program id
+                $this->programID = $this->randomProgramID($programs);
+                break;
+            case 3.1:
+                $programs = $this->levelProgramCodes(31);
+                $this->enrolled = 2020;
+                //Get a random program id
+                $this->programID = $this->randomProgramID($programs);
+                break;
+            case 3.2:
+                $programs = $this->levelProgramCodes(32);
+                $this->enrolled = 2020;
+                //Get a random program id
+                $this->programID = $this->randomProgramID($programs);
+                break;
+            case 4.1:
+                $programs = $this->levelProgramCodes(41);
+                $this->enrolled = 2022;
+                //Get a random program id
+                $this->programID = $this->randomProgramID($programs);
+                break;
+            case 4.2:
+                $programs = $this->levelProgramCodes(42);
+                $this->enrolled = 2022;
+                //Get a random program id
+                $this->programID = $this->randomProgramID($programs);
+                break;
+            case 5.1:
+                $programs = $this->levelProgramCodes(51);
+                $this->enrolled = 2022;
+                //Get a random program id
+                $this->programID = $this->randomProgramID($programs);
+                break;
+            case 5.2:
+                $programs = $this->levelProgramCodes(52);
+                $this->enrolled = 2022;
+                //Get a random program id
+                $this->programID = $this->randomProgramID($programs);
+                break;
+        }
+
+                    if ($counter > 3) {
+                $this->studentType = 'Block';
+                $counter = 1;
+            } else {
+                $this->studentType = 'Conventional';
+            }
+
+
+                    [
+            'id' => 'BF',
+            'program' => 'Banking and Finance',
+            'faculty_id' => 'COM'
+        ],
+
+
+
+
+
+
+            private $conPrograms = [
+        [
+            'id' => 'BC',
+            'program' => 'Business Computing',
+            'faculty_id' => 'ENG'
+        ],
+        [
+            'id' => 'PRD',
+            'program' => 'Production Engineering',
+            'faculty_id' => 'ENG'
+        ],
+        [
+            'id' => 'IT',
+            'program' => 'Information Technology',
+            'faculty_id' => 'ENG'
+        ],
+        [
+            'id' => 'AS',
+            'program' => 'Animal Science',
+            'faculty_id' => 'AGR'
+        ],
+        [
+            'id' => 'CS',
+            'program' => 'Crop Science',
+            'faculty_id' => 'AGR'
+        ],
+        [
+            'id' => 'BT',
+            'program' => 'Bio Tech',
+            'faculty_id' => 'AGR'
+        ],
+        [
+            'id' => 'GIS',
+            'program' => 'Geography and Information Systems',
+            'faculty_id' => 'HUN'
+        ],
+        [
+            'id' => 'DS',
+            'program' => 'Development Studies',
+            'faculty_id' => 'HUN'
+        ],
+        [
+            'id' => 'MS',
+            'program' => 'Media Studies',
+            'faculty_id' => 'HUN'
+        ],
+        [
+            'id' => 'HR',
+            'program' => 'Human and Resource Management',
+            'faculty_id' => 'COM'
+        ],
+        [
+            'id' => 'ACC',
+            'program' => 'Accounting',
+            'faculty_id' => 'COM'
+        ],
+        [
+            'id' => 'BF',
+            'program' => 'Banking and Finance',
+            'faculty_id' => 'COM'
+        ],
+    ];
+
+       private $blockPrograms = [
+        [
+            'id' => 'BC',
+            'program' => 'Business Computing',
+            'faculty_id' => 'ENG'
+        ],
+        [
+            'id' => 'AE',
+            'program' => 'Agriculture Economics',
+            'faculty_id' => 'AGR'
+        ],
+        [
+            'id' => 'AED',
+            'program' => 'Agriculture Education',
+            'faculty_id' => 'AGR'
+        ],
+    ];
+
+        // //update the general requests table
+        // Requests::where('student_id', $requester_id)
+        //     ->update(['processed' => 'Yes']);
+
+        // foreach ($selectedRoomies as $roomie) {
+        //     Requests::where('student_id', $roomie->selected_roomie)
+        //         ->update(['processed' => 'Yes']);
+        // }
+
+        [
+            'id' => 'HR',
+            'program' => 'Human and Resource Management',
+            'faculty_id' => 'COM'
+        ],
+
+
+         if (!$beenSelected) {
+                $exists = Requester::where('student_id', $student->id)->exists();
+
+                if (!$exists) {
+                    $freeMates[] = $student;
+                }
+            }
