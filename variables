@@ -1,0 +1,20 @@
+APP_NAME=mylsu-api
+APP_ENV=production
+APP_KEY=base64:EoiwL+kiLl3PGmSrPrNshgTKC22eW7M2jNun60ztLM0=
+APP_DEBUG=true
+APP_URL=https://mylsu-api-production.up.railway.app
+DB_CONNECTION=mysql
+DB_HOST=containers-us-west-193.railway.app
+DB_PORT=7632
+DB_DATABASE=railway
+DB_USERNAME=root
+DB_PASSWORD=KVoeoC0ntSTBR5xBWiRr
+REDIS_HOST=containers-us-west-42.railway.app
+REDIS_USER=default
+REDIS_PASSWORD=G1MYxpCWi0UmPW36JB4w
+REDIS_PORT=6568
+REDIS_URL=redis://${{ REDIS_USER }}:${{ REDIS_PASSWORD }}@${{ REDIS_HOST }}:${{ REDIS_PORT }}
+CACHE_DRIVER=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+NIXPACKS_BUILD_CMD=
